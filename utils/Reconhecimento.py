@@ -11,10 +11,12 @@ class ReconhecimentoFacial: # Classe
         self.reconhecedor.read(recognizer_file)
         self.camera = Camera()
 
-    def carregar_alunos(self, aluno_data_file): # Método
+    @staticmethod
+    def carregar_alunos(aluno_data_file): # Método
         with open(aluno_data_file) as f:
             return json.load(f)
 
+    # @staticmethod
     def run(self): # Método
         while True:
             imagem = self.camera.read()
@@ -36,6 +38,11 @@ class ReconhecimentoFacial: # Classe
             cv2.imshow("UniRecognition", imagem)
             if cv2.waitKey(1) == ord('q'):
                 break
+
+    @property
+    def verAlunos(self):
+        print("Acessando a lista de alunos...")
+        return self.alunos
 
     def __del__(self): # Método destrutor
         del self.camera

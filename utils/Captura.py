@@ -39,12 +39,11 @@ class CapturaFaces:
 
         print("Faces capturadas com sucesso")
 
-    def fechar(self):
-        cv2.destroyAllWindows()
+    def __del__(self): # Método destrutor
+        del self.camera
 
 if __name__ == "__main__":
     cascade_file = "src\\frontalFaceHaarcascade.xml"  # Arquivo do classificador Haar
 
     captura = CapturaFaces(cascade_file)  # Instância da classe CapturaFaces
     captura.capturar()  # Chamada do método de captura
-    captura.fechar()  # Chamada do método de fechamento de recursos
