@@ -74,5 +74,5 @@
 - [x] Identificou e codificou classes de comportamento
     Utilizamos herança na classe Camera, ela herda as funcionalidades do metodo read, da biblioteca cv2.
 
-- [x] Contribuiu com o material da disciplina criando PRs/MRs
+- [x] Contribuiu com o material da disciplina criando PRs/MRs (Kauê)
     https://gitlab.com/ettoreleandrotognoli/unimar-object-oriented-programming-i/-/merge_requests/2
