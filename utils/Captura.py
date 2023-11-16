@@ -7,7 +7,7 @@ class CapturaFaces:
         self.classificador = cv2.CascadeClassifier(cascade_file)  # Instância do classificador Haar
         self.camera = Camera()  # Instância da câmera de vídeo
         self.amostra = 1
-        self.numeroAmostras = 25
+        self.numeroAmostras = 50
         self.ra = input("Digite seu identificador: ")
 
     def capturar(self):
@@ -28,6 +28,7 @@ class CapturaFaces:
                     cv2.imwrite("Fotos/pessoa." + str(self.ra) + "." + str(self.amostra) + ".jpg", imagemFace)
                     print("[Foto " + str(self.amostra) + " capturada com sucesso]")
                     self.amostra += 1
+                    cv2.waitKey(50)
 
                     if self.amostra > self.numeroAmostras:
                         capturando = False  # Parar a captura após o número desejado de amostras
