@@ -1,7 +1,6 @@
 import cv2
 
 VIDEO_SRC = 'http://192.168.137.36' ":81/stream"
-# VIDEO_SRC = 0
 
 class Camera:
     def __init__(self): # Metodo construtor
