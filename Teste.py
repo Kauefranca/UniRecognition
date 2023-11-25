@@ -27,7 +27,7 @@ class MinhaJanela:
 
 root = tk.Tk()
 
-# Cria um estilo para o botão com efeito hover
+# Cria um estilo para o botão com efeito hovers
 style = ttk.Style()
 style.configure('Hover.TButton', foreground='red')  # Altere as propriedades de estilo conforme desejado
 

@@ -17,7 +17,7 @@ class ReconhecimentoFacial: # Classe
             return json.load(f)
 
     # @staticmethod
-    def run(self): # Método
+    def run(self): # Métodos
         #while True:
         imagem = self.camera.read()
         imagemCinza = cv2.cvtColor(imagem, cv2.COLOR_BGR2GRAY)

@@ -70,7 +70,7 @@ class SeuApp:
             img = Image.fromarray(frame)
             imgtk = ImageTk.PhotoImage(image=img)
 
-            # Atualize o widget Canvas com o novo frame
+            # Atualize o widget Canvas com o novo framef
             self.canvas_camera.imgtk = imgtk
             self.canvas_camera.create_image(0, 0, anchor=tk.NW, image=imgtk)
             

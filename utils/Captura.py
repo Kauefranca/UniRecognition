@@ -5,7 +5,7 @@ class CapturaFaces:
     def __init__(self, cascade_file):
         # Construtor da classe, recebe o arquivo do classificador e a fonte de vídeo
         self.classificador = cv2.CascadeClassifier(cascade_file)  # Instância do classificador Haar
-        self.camera = Camera()  # Instância da câmera de vídeo
+        self.camera = Camera()  # Instância da câmera de vídeos
         self.amostra = 1
         self.numeroAmostras = 50
         self.ra = input("Digite seu identificador: ")
