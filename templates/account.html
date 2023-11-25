@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Account
+{% endblock %}
+
+{% block main %}
+
+    <div class="card pmd-card">
+        <div class="pmd-tabs">
+            <ul role="tablist" class="nav nav-tabs nav-fill">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" data-toggle="tab" role="tab" aria-controls="home" href="#home-fixed">Change password</a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="home-fixed">
+                    <form action="/account" method="post">
+                        <div class="form-group">
+                            <input autocomplete="off" class="form-control" name="old_password" placeholder="Old password" type="password">
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" name="new_password" placeholder="New password" type="password">
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" name="new_password_confirmation" placeholder="Confirm new password" type="password">
+                        </div>
+                        <input type="hidden" name="action" value="change_password">
+                        <button class="btn btn-primary" type="submit">Change password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

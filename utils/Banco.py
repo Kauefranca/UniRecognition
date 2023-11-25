@@ -21,10 +21,10 @@ def selectNameWithRA(ra):
     except Exception as e:
         print(f"Error: {e}")
 
-def createUser(nome, ra):
-    sql = """INSERT INTO usuario(nome, ra) VALUES(%s, %s);"""
+def createUser(nome, ra, id_aula):
+    sql = """INSERT INTO usuario(nome, ra, id_aula) VALUES(%s, %s, %s);"""
     try:
-        cur.execute(sql, (nome, ra))
+        cur.execute(sql, (nome, ra, id_aula))
         con.commit()
     except Exception as e:
         print(f"Error: {e}")
@@ -90,9 +90,24 @@ def selectAllImages():
     except Exception as e:
         print(f"Error: {e}")
 
+def selectAllUsers(id_aula):
+    sql = """SELECT * FROM usuario WHERE id_aula = (SELECT id_aula FROM aula WHERE id_aula = %s);"""
+    try:
+        cur.execute(sql, (id_aula, ))
+        result = cur.fetchall()
+
+        if result:
+            return result
+
+        else:
+            print("Nothing to see here")
+    except Exception as e:
+        print(f"Error: {e}")
+
+
 # selectImage(1959642)
      
-# createUser("Eduardo Santos", 1959642)
+# createUser("Eduardo Santos", 1959642, 1)
 
 # for path in listdir('./fotos/1959642/'):
 # 	insertImage('./fotos/1959642/' + path, 1959642)
@@ -103,8 +118,9 @@ def selectAllImages():
 # createProfessor("Rafael Gutierres")
 
 # createAula('Fábrica de projeto ágeis', 1)
-images = selectAllImages()
+# images = selectAllImages()
 
-print(images)
+alunos = selectAllUsers(1)
+print(alunos)
 
 con.close()

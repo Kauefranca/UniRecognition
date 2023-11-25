@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Reconhecimento
+{% endblock %}
+
+{% block main %}
+
+<link href="/static/reconhecer.css" rel="stylesheet">
+    <!-- <img src="/rec"> -->
+    <div>
+        <img src="https://i.pinimg.com/originals/91/9c/57/919c5719579d855d1fa9e1c128a80d64.jpg">
+        <table>
+            <tr>
+                <th colspan="2">
+                    <div id="MyClockDisplay" class="clock" onload="showTime()">a</div>  
+                </th>
+            </tr>
+            <tr>
+              <th>Nome</th>
+              <th>Entrada</th>
+            </tr>
+            <tr class="registered">
+              <td>Kauê França</td>
+              <td>19:22:12</td>
+            </tr>
+            <tr>
+              <td>afadsadas </td>
+              <td>Francisco Chang</td>
+            </tr>
+        </tr>
+        <tr class="registered">
+          <td>Kauê França</td>
+          <td>19:22:12</td>
+        </tr>
+        <tr>
+          <td>afadsadas </td>
+          <td>Francisco Chang</td>
+        </tr>
+    </tr>
+    <tr class="registered">
+      <td>Kauê França</td>
+      <td>19:22:12</td>
+    </tr>
+    <tr>
+      <td>afadsadas </td>
+      <td>Francisco Chang</td>
+    </tr>
+</table>
+
+    </div>
+
+    <script>
+
+        function showTime(){
+        var date = new Date();
+        var h = date.getHours(); // 0 - 23
+        var m = date.getMinutes(); // 0 - 59
+        var s = date.getSeconds(); // 0 - 59
+        var session = "AM";
+        
+        if(h == 0){
+            h = 12;
+        }
+        
+        if(h > 12){
+            h = h - 12;
+            session = "PM";
+        }
+        
+        h = (h < 10) ? "0" + h : h;
+        m = (m < 10) ? "0" + m : m;
+        s = (s < 10) ? "0" + s : s;
+        
+        var time = h + ":" + m + ":" + s + " " + session;
+        document.getElementById("MyClockDisplay").innerText = time;
+        document.getElementById("MyClockDisplay").textContent = time;
+        
+        setTimeout(showTime, 1000);
+    
+    }
+
+    showTime();
+    </script>
+{% endblock %}

@@ -1,7 +1,7 @@
 from math import floor
 import cv2
 import json
-from Camera import Camera
+from utils.Camera import Camera
 
 class ReconhecimentoFacial: # Classe
     def __init__(self, aluno_data_file, classifier_file, recognizer_file): # Método construtor
@@ -40,7 +40,11 @@ class ReconhecimentoFacial: # Classe
             cv2.rectangle(imagem, (x, y), (x + l, y + a), cor, 2)
             cv2.putText(imagem, nome, (x, y + a + 30), cv2.FONT_HERSHEY_TRIPLEX, 1, cor)
 
-        return imagem
+        ret, jpeg = cv2.imencode('.jpg', imagem)
+
+        return jpeg.tobytes()
+
+        # return imagem
             
             #cv2.imshow("UniRecognition", imagem)
             #if cv2.waitKey(1) == ord('q'):
