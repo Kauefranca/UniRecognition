@@ -1,5 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter.scrolledtext import ScrolledText
+import threading
+from queue import Queue, Empty
+import sys
 
 class SeuApp:
     def __init__(self, root):
@@ -36,16 +40,64 @@ class SeuApp:
 
     def criar_layout_direita(self):
         # Espaço para exibir informações do banco de dados
-        info_banco_dados = ttk.Label(self.frame_direita, relief="solid", text="Informações do Banco de Dados", font=("Arial", 14))
-        info_banco_dados.grid(row=0, column=0, pady=10, ipady=300 )
+        info_banco_dados = ttk.Label(self.frame_direita, text="Informações do Banco de Dados", font=("Arial", 14))
+        info_banco_dados.grid(row=0, column=0, pady=1, ipady=10)
+
+        # Text widget para exibir informações em tempo real
+        self.text_terminal = ScrolledText(self.frame_direita, wrap="word", height=27, width=40)
+        self.text_terminal.grid(row=1, column=0, pady=10)
 
         # Adicione aqui widgets ou outros elementos para exibir informações do banco de dados
+
+        # Criar uma fila para passar mensagens entre threads
+        self.queue = Queue()
+
+        # Iniciar a thread para exibir mensagens em tempo real
+        self.thread = threading.Thread(target=self.update_text_from_queue)
+        self.thread.daemon = True
+        self.thread.start()
+
+        # Redireciona a saída padrão para a função que coloca mensagens na fila
+        sys.stdout = self.TkinterRedirector(self.queue.put)
+
+    def update_text_from_queue(self):
+        while True:
+            try:
+                msg = self.queue.get(timeout=0.1)
+                if msg is None:  # Sinal para encerrar a thread
+                    break
+                self.text_terminal.insert(tk.END, msg)
+                self.text_terminal.see(tk.END)  # Rolagem automática para a parte inferior
+            except Empty:  # Correção aqui
+                pass
+
+    class TkinterRedirector:
+        def __init__(self, callback):
+            self.callback = callback
+
+        def write(self, text):
+            self.callback(text)
+
+        def flush(self):
+            pass
+
+    def obter_informacoes_banco_dados(self):
+        # Simulação: substitua isso com a lógica real para obter as informações do banco de dados
+        informacoes = "Informações do banco de dados:\n"
+
+        #self.info_banco_dados.config(text=informacoes)
+        self.queue.put(informacoes)
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("UniRecognition")
-    root.geometry('920x660')
-    root.minsize(920, 660) 
-    root.maxsize(920, 660) 
+    root.geometry('985x530')
+    root.minsize(985, 530)
+    root.maxsize(985, 530)
     app = SeuApp(root)
+    app.obter_informacoes_banco_dados()
     root.mainloop()
+
+    # Terminar a thread quando a janela for fechada
+    app.queue.put(None)
+    app.thread.join()
