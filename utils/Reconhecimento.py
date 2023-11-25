@@ -18,31 +18,33 @@ class ReconhecimentoFacial: # Classe
 
     # @staticmethod
     def run(self): # Método
-        while True:
-            imagem = self.camera.read()
-            imagemCinza = cv2.cvtColor(imagem, cv2.COLOR_BGR2GRAY)
-            faceDetectadas = self._classificador.detectMultiScale(imagemCinza, scaleFactor=1.5)
+        #while True:
+        imagem = self.camera.read()
+        imagemCinza = cv2.cvtColor(imagem, cv2.COLOR_BGR2GRAY)
+        faceDetectadas = self._classificador.detectMultiScale(imagemCinza, scaleFactor=1.5)
 
-            for (x, y, l, a) in faceDetectadas:
-                imagemFace = cv2.resize(imagemCinza[y:y + a, x:x + l], (100, 100))
-                
-                id, confianca = self.reconhecedor.predict(imagemFace)
+        for (x, y, l, a) in faceDetectadas:
+            imagemFace = cv2.resize(imagemCinza[y:y + a, x:x + l], (100, 100))
+            
+            id, confianca = self.reconhecedor.predict(imagemFace)
 
-                cor = (0, 0, 255)
+            cor = (0, 0, 255)
 
 
-                if confianca < 79 and str(id) in self.alunos:
-                    nome = f"{self.alunos[str(id)]} {str(floor(confianca))}"
-                    cor = (0, 255, 0)
-                else:
-                    nome = "Desconhecido"
+            if confianca < 79 and str(id) in self.alunos:
+                nome = f"{self.alunos[str(id)]} {str(floor(confianca))}"
+                cor = (0, 255, 0)
+            else:
+                nome = "Desconhecido"
 
-                cv2.rectangle(imagem, (x, y), (x + l, y + a), cor, 2)
-                cv2.putText(imagem, nome, (x, y + a + 30), cv2.FONT_HERSHEY_TRIPLEX, 1, cor)
+            cv2.rectangle(imagem, (x, y), (x + l, y + a), cor, 2)
+            cv2.putText(imagem, nome, (x, y + a + 30), cv2.FONT_HERSHEY_TRIPLEX, 1, cor)
 
-            cv2.imshow("UniRecognition", imagem)
-            if cv2.waitKey(1) == ord('q'):
-                break
+        return imagem
+            
+            #cv2.imshow("UniRecognition", imagem)
+            #if cv2.waitKey(1) == ord('q'):
+                #break
 
     @property
     def verAlunos(self):

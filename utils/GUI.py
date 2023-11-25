@@ -4,6 +4,9 @@ from tkinter.scrolledtext import ScrolledText
 import threading
 from queue import Queue, Empty
 import sys
+import cv2
+from Reconhecimento import ReconhecimentoFacial
+from PIL import Image, ImageTk
 
 class SeuApp:
     def __init__(self, root):
@@ -25,10 +28,20 @@ class SeuApp:
         self.criar_layout_esquerda()
         self.criar_layout_direita()
 
+        
+        aluno_data_file = 'salas\\BCC\\2A.json'
+        classifier_file = 'src\\frontalFaceHaarcascade.xml'
+        recognizer_file = 'src\\classificadores\\classificadorLBPH_V1.yml'
+
+        self.reconhecimento = ReconhecimentoFacial(aluno_data_file, classifier_file, recognizer_file)
+
+
+        self.iniciar_camera()
+
     def criar_layout_esquerda(self):
-        # Quadrado superior à esquerda
-        quadrado_superior = ttk.Label(self.frame_esquerda, text="Video error", width=100, borderwidth=3, background="black")
-        quadrado_superior.grid(row=0, column=0, pady=10, ipady=175)
+        # Camera superior
+        self.canvas_camera = tk.Canvas(self.frame_esquerda, width=650, height=350)
+        self.canvas_camera.grid(row=0, column=0, pady=5, ipady=10)
 
         # Quadrado centro à esquerda
         quadrado_centro = ttk.Button(self.frame_esquerda, text="Register", width=50)
@@ -36,8 +49,31 @@ class SeuApp:
 
         # Quadrado centro à esquerda
         quadrado_centro = ttk.Button(self.frame_esquerda, text="Training", width=50)
-        quadrado_centro.grid(row=2, column=0, pady=1, ipady=10)
+        quadrado_centro.grid(row=2, column=0, pady=10, ipady=10)
 
+    def iniciar_camera(self):
+        self.thread_running = True
+        self.camera_thread = threading.Thread(target=self.atualizar_feed_camera)
+        self.camera_thread.start()
+
+    def parar_camera(self):
+        self.thread_running = False
+        if self.camera_thread:
+            self.camera_thread.join()
+
+    def atualizar_feed_camera(self):
+        while self.thread_running:
+            # frame = self.cap()
+            # if frame:
+                # Converta o frame para o formato do Tkinter
+            frame = cv2.cvtColor(self.reconhecimento.run(), cv2.COLOR_BGR2RGB)
+            img = Image.fromarray(frame)
+            imgtk = ImageTk.PhotoImage(image=img)
+
+            # Atualize o widget Canvas com o novo frame
+            self.canvas_camera.imgtk = imgtk
+            self.canvas_camera.create_image(0, 0, anchor=tk.NW, image=imgtk)
+            
     def criar_layout_direita(self):
         # Espaço para exibir informações do banco de dados
         info_banco_dados = ttk.Label(self.frame_direita, text="Informações do Banco de Dados", font=("Arial", 14))
@@ -85,15 +121,15 @@ class SeuApp:
         # Simulação: substitua isso com a lógica real para obter as informações do banco de dados
         informacoes = "Informações do banco de dados:\n"
 
-        self.info_banco_dados.config(text=informacoes)
+        #self.info_banco_dados.config(text=informacoes)
         self.queue.put(informacoes)
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("UniRecognition")
     root.geometry('985x530')
-    root.minsize(985, 530)
-    root.maxsize(985, 530)
+    #root.minsize(985, 530)
+    #root.maxsize(985, 530)
     app = SeuApp(root)
     app.obter_informacoes_banco_dados()
     root.mainloop()

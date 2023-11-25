@@ -9,35 +9,36 @@ class CapturaFaces:
         self.amostra = 1
         self.numeroAmostras = 50
         self.ra = input("Digite seu identificador: ")
+        self.capturando = False
 
     def capturar(self):
         # Método para capturar as faces
-        capturando = False
-        while True:
-            imagem = self.camera.read()
-            imagemCinza = cv2.cvtColor(imagem, cv2.COLOR_BGR2GRAY)
-            faceDetectadas = self.classificador.detectMultiScale(imagemCinza, scaleFactor=1.5, minSize=(150, 150))
+        # capturando = False
+        # while True:
+        imagem = self.camera.read()
+        imagemCinza = cv2.cvtColor(imagem, cv2.COLOR_BGR2GRAY)
+        faceDetectadas = self.classificador.detectMultiScale(imagemCinza, scaleFactor=1.5, minSize=(150, 150))
 
-            for (x, y, l, a) in faceDetectadas:
-                cv2.rectangle(imagem, (x, y), (x + l, y + a), (0, 0, 255), 2)
-                if cv2.waitKey(1) & 0xFF == ord('c'):
-                    capturando = True  # Iniciar a captura apenas quando 'c' for pressionado
+        for (x, y, l, a) in faceDetectadas:
+            cv2.rectangle(imagem, (x, y), (x + l, y + a), (0, 0, 255), 2)
+            if cv2.waitKey(1) & 0xFF == ord('c'):
+                self.capturando = True  # Iniciar a captura apenas quando 'c' for pressionado
 
-                if capturando:
-                    imagemFace = cv2.resize(imagemCinza[y:y + a, x:x + l], (220, 220))
-                    cv2.imwrite("Fotos/pessoa." + str(self.ra) + "." + str(self.amostra) + ".jpg", imagemFace)
-                    print("[Foto " + str(self.amostra) + " capturada com sucesso]")
-                    self.amostra += 1
-                    cv2.waitKey(50)
+            if self.capturando:
+                imagemFace = cv2.resize(imagemCinza[y:y + a, x:x + l], (220, 220))
+                cv2.imwrite("Fotos/pessoa." + str(self.ra) + "." + str(self.amostra) + ".jpg", imagemFace)
+                print("[Foto " + str(self.amostra) + " capturada com sucesso]")
+                self.amostra += 1
+                cv2.waitKey(50)
 
-                    if self.amostra > self.numeroAmostras:
-                        capturando = False  # Parar a captura após o número desejado de amostras
+                if self.amostra > self.numeroAmostras:
+                    self.capturando = False  # Parar a captura após o número desejado de amostras
 
-            cv2.imshow("Face", imagem)
-            cv2.waitKey(1)
-            if self.amostra > self.numeroAmostras:
-                break
-
+        # cv2.imshow("Face", imagem)
+        cv2.waitKey(1)
+        if self.amostra > self.numeroAmostras:
+            return
+        return imagem
         print("Faces capturadas com sucesso")
 
     def __del__(self): # Método destrutor
