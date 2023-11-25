@@ -9,11 +9,11 @@ con = psycopg2.connect(
 
 cur = con.cursor()
 
-sql = 'CREATE TABLE IF NOT EXISTS professor(id_professor INT NOT NULL PRIMARY KEY, nome VARCHAR(60) NOT NULL);'
+sql = 'CREATE TABLE IF NOT EXISTS professor(id_professor SERIAL NOT NULL PRIMARY KEY, nome VARCHAR(60) NOT NULL);'
 cur.execute(sql)
 con.commit()
 
-sql = "CREATE TABLE IF NOT EXISTS aula(id_aula INT NOT NULL PRIMARY KEY, nome VARCHAR(60) NOT NULL, id_professor INT NOT NULL REFERENCES professor(id_professor));"
+sql = "CREATE TABLE IF NOT EXISTS aula(id_aula SERIAL NOT NULL PRIMARY KEY, nome VARCHAR(60) NOT NULL, id_professor INT NOT NULL REFERENCES professor(id_professor));"
 cur.execute(sql)
 con.commit()
 
