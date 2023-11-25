@@ -20,32 +20,13 @@
               <th>Nome</th>
               <th>Entrada</th>
             </tr>
-            <tr class="registered">
-              <td>Kauê França</td>
-              <td>19:22:12</td>
-            </tr>
+            {% for row in data %}
             <tr>
-              <td>afadsadas </td>
-              <td>Francisco Chang</td>
+                <td>{{ row[1] }}</td>
+                <td></td>
+                <!-- Adicione mais colunas conforme necessário -->
             </tr>
-        </tr>
-        <tr class="registered">
-          <td>Kauê França</td>
-          <td>19:22:12</td>
-        </tr>
-        <tr>
-          <td>afadsadas </td>
-          <td>Francisco Chang</td>
-        </tr>
-    </tr>
-    <tr class="registered">
-      <td>Kauê França</td>
-      <td>19:22:12</td>
-    </tr>
-    <tr>
-      <td>afadsadas </td>
-      <td>Francisco Chang</td>
-    </tr>
+            {% endfor %}
 </table>
 
     </div>

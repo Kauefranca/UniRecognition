@@ -14,7 +14,7 @@ con = psycopg2.connect(
 cur = con.cursor()
 
 def selectNameWithRA(ra):
-    sql = """SELECT * FROM usuario WHERE ra=%s;"""
+    sql = """SELECT * FROM aluno WHERE ra=%s;"""
     try:
         cur.execute(sql, (ra,))
         return cur.fetchall()
@@ -22,7 +22,7 @@ def selectNameWithRA(ra):
         print(f"Error: {e}")
 
 def createUser(nome, ra, id_aula):
-    sql = """INSERT INTO usuario(nome, ra, id_aula) VALUES(%s, %s, %s);"""
+    sql = """INSERT INTO aluno(nome, ra, id_aula) VALUES(%s, %s, %s);"""
     try:
         cur.execute(sql, (nome, ra, id_aula))
         con.commit()
@@ -50,7 +50,7 @@ def insertImage(image_path, ra):
     with open(image_path, 'rb') as file:
         image_binary = file.read()
 
-    sql = """INSERT INTO imagem(imagem, id_usuario) VALUES (%s, (SELECT id_usuario FROM usuario WHERE ra = %s));"""
+    sql = """INSERT INTO imagem(imagem, id_aluno) VALUES (%s, (SELECT id_aluno FROM aluno WHERE ra = %s));"""
     try:
         cur.execute(sql, (image_binary, ra))
         con.commit()
@@ -59,7 +59,7 @@ def insertImage(image_path, ra):
         print(f"Error: {e}")
         
 def selectImage(ra):
-    sql = """SELECT imagem FROM imagem WHERE id_usuario = (SELECT id_usuario FROM usuario WHERE ra = %s);"""
+    sql = """SELECT imagem FROM imagem WHERE id_aluno = (SELECT id_aluno FROM aluno WHERE ra = %s);"""
     try:
         cur.execute(sql, (ra,))
         result = cur.fetchone()
@@ -91,7 +91,7 @@ def selectAllImages():
         print(f"Error: {e}")
 
 def selectAllUsers(id_aula):
-    sql = """SELECT * FROM usuario WHERE id_aula = (SELECT id_aula FROM aula WHERE id_aula = %s);"""
+    sql = """SELECT * FROM aluno WHERE id_aula = (SELECT id_aula FROM aula WHERE id_aula = %s);"""
     try:
         cur.execute(sql, (id_aula, ))
         result = cur.fetchall()
@@ -107,7 +107,7 @@ def selectAllUsers(id_aula):
 
 # selectImage(1959642)
      
-# createUser("Eduardo Santos", 1959642, 1)
+createUser("Eduardo Santos", 1959642, 1)
 
 # for path in listdir('./fotos/1959642/'):
 # 	insertImage('./fotos/1959642/' + path, 1959642)

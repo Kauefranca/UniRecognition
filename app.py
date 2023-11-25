@@ -1,6 +1,6 @@
 from flask import Flask, Response
 from utils.Reconhecimento import ReconhecimentoFacial
-from cs50 import SQL
+import psycopg2
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from tempfile import mkdtemp
@@ -33,7 +33,13 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///finance.db")
+con = psycopg2.connect(
+	host='localhost', 
+	database='postgres', 
+	port='5432',
+	user='postgres', 
+	password='unimar'
+)
 
 @app.route("/")
 @login_required
@@ -48,7 +54,12 @@ def rec():
 @app.route("/reconhecer", methods=["GET"])
 # @login_required
 def reconhecer():
-    return render_template('reconhecer.html')
+    cursor = con.cursor()
+    sql = """SELECT * FROM aluno WHERE id_aula = (SELECT id_aula FROM aula WHERE id_aula = %s) ORDER BY nome;"""
+    cursor.execute(sql, (1,))
+    data = cursor.fetchall()
+
+    return render_template('reconhecer.html', data=data)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
