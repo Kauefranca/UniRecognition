@@ -85,7 +85,7 @@ class SeuApp:
         # Simulação: substitua isso com a lógica real para obter as informações do banco de dados
         informacoes = "Informações do banco de dados:\n"
 
-        #self.info_banco_dados.config(text=informacoes)
+        self.info_banco_dados.config(text=informacoes)
         self.queue.put(informacoes)
 
 if __name__ == "__main__":
