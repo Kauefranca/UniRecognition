@@ -1,33 +1,32 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Buy stock
+  Registro
 {% endblock %}
 
 {% block main %}
     <link href="/static/registrar.css" rel="stylesheet">
 
-    <!-- <img src="/rec"> -->
     <div>
-        <img src="https://i.pinimg.com/originals/91/9c/57/919c5719579d855d1fa9e1c128a80d64.jpg">
+      <img src="/rec">
         
-        <form>
+        <form action="/registrar" method="post">
           <div class="input-group mb-3 container">
-            <input type="text" class="form-control" placeholder="Nome do aluno" aria-label="nome"   aria-describedby="basic-addon1">
+            <input type="text" required class="form-control" placeholder="Nome do aluno" name="nome"   aria-describedby="basic-addon1">
             
-            <input type="number" class="form-control" placeholder="RA" aria-label="ra" aria-describedby="basic-addon1">
+            <input type="number" required class="form-control" placeholder="RA" name="ra" aria-describedby="basic-addon1">
 
           </div>
           <div class="container">
-            <select class="custom-select" id="inputGroupSelect01">
-              <option selected>Escolha a disciplina</option>
+            <select class="custom-select" name="id_aula">
+              <option disabled selected>Escolha a disciplina</option>
               {% for row in data %}
-              <option value="{{ row[1] }}">{{ row[0] }}</option>
+              <option required value="{{ row[1] }}">{{ row[0] }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="container">
-            <button type="button" class="btn btn-success">Cadastrar!</button>
+            <button type="submit" class="btn btn-success">Cadastrar!</button>
           </div>
         </form>
       </div>

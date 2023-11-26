@@ -1,4 +1,5 @@
 import cv2
+import threading
 
 VIDEO_SRC = 'http://192.168.68.102:4747/video'
 
@@ -8,6 +9,7 @@ class Camera:
             self._camera = cv2.VideoCapture(VIDEO_SRC) # Atributo privado
         except:
             self._camera
+        self._lock = threading.Lock()
         
     def __del__(self): # Método destrutor
         self._camera.release()
@@ -15,9 +17,12 @@ class Camera:
         print("Objeto Camera destruído")
 
     def read(self):
-        con, cap = self._camera.read()
+        with self._lock:
+            con, cap = self._camera.read()
 
-        if not con:
-            raise ConnectionError(f"A conexão com a câmera {VIDEO_SRC} foi perdida!")
+            if not con:
+                raise ConnectionError(f"A conexão com a câmera {VIDEO_SRC} foi perdida!")
 
-        return cap
+            ret, jpeg = cv2.imencode('.jpg', cap)
+
+            return jpeg.tobytes()

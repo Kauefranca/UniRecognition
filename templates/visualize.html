@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  Relatório
+{% endblock %}
+
+{% block main %}
+
+<link href="/static/reconhecer.css" rel="stylesheet">
+    <div>
+      {% if type == 'listagem' %}
+      <table>
+        <tr>
+          <th>Nome</th>
+          <th>RA</th>
+          <th>Curso</th>
+        </tr>
+        {% for row in rows %}
+          <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ ids[row[2]] }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+    </div>
+{% endblock %}

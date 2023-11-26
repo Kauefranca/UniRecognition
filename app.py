@@ -1,5 +1,4 @@
 from flask import Flask, Response
-from utils.Reconhecimento import ReconhecimentoFacial
 import psycopg2
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
@@ -9,14 +8,18 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from utils.Helpers import apology, login_required
 
+from utils.Reconhecimento import ReconhecimentoFacial
+from utils.Camera import Camera
+
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-aluno_data_file = 'salas\\BCC\\2A.json'
-classifier_file = 'src\\frontalFaceHaarcascade.xml'
-recognizer_file = 'src\\classificadores\\classificadorLBPH_V1.yml'
+# aluno_data_file = 'salas\\BCC\\2A.json'
+# classifier_file = 'src\\frontalFaceHaarcascade.xml'
+# recognizer_file = 'src\\classificadores\\classificadorLBPH_V1.yml'
 
-reconhecimento = ReconhecimentoFacial(aluno_data_file, classifier_file, recognizer_file)
+camera = Camera()
+# reconhecimento = ReconhecimentoFacial(aluno_data_file, classifier_file, recognizer_file)
 
 # Ensure responses aren't cached
 @app.after_request
@@ -48,7 +51,7 @@ def index():
 
 @app.route('/rec')
 def rec():
-    return Response(gen(reconhecimento),mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route("/reconhecer", methods=["GET"])
 @login_required
@@ -60,16 +63,69 @@ def reconhecer():
 
     return render_template('reconhecer.html', data=data)
 
-@app.route("/registrar", methods=["GET"])
+@app.route("/registrar", methods=["GET", "POST"])
 @login_required
 def registrar():
-    cursor = con.cursor()
-    sql = """SELECT nome, id_aula FROM aula ORDER BY nome;"""
-    cursor.execute(sql, (1,))
-    data = cursor.fetchall()
-    print(sql)
+    if request.method == "POST":
 
-    return render_template('registrar.html', data=data)
+        # Ensure username was submitted
+        if not request.form.get("nome"):
+            return apology("Campo 'Nome' obrigatório!", 400)
+
+        # Ensure password was submitted
+        elif not request.form.get("ra"):
+            return apology("Campo 'RA' obrigatório!", 400)
+    
+        elif not request.form.get("id_aula"):
+            return apology("Campo 'id_aula' obrigatório!", 400)
+        
+        cursor = con.cursor()
+        sql = """SELECT * FROM aluno WHERE ra = %s"""
+        cursor.execute(sql, (request.form.get("ra"),))
+        rows = cursor.fetchone()
+
+
+        # Check if username already exists
+        if rows:
+            return apology("Já existe alguém com esse RA cadastrado!", 400)
+        
+        cursor = con.cursor()
+        sql = """INSERT INTO aluno(nome, ra, id_aula) VALUES (%s, %s, %s)"""
+        cursor.execute(sql, (request.form.get("nome"), request.form.get("ra"), request.form.get("id_aula")))
+        con.commit()
+
+        # Redirect user to home page
+        return redirect("/registrar")
+
+    # User reached route via GET (as by clicking a link or via redirect)
+    else:
+        cursor = con.cursor()
+        sql = """SELECT nome, id_aula FROM aula ORDER BY nome;"""
+        cursor.execute(sql, (1,))
+        data = cursor.fetchall()
+        print(sql)
+
+        return render_template('registrar.html', data=data)
+
+@app.route("/relatorio", methods=["GET", "POST"])
+@login_required
+def relatorio():
+    if request.method == 'POST':
+        if not request.form.get("tipo_relatorio"):
+            return apology("Campo 'tipo_relatorio' obrigatório!", 400)
+        
+        if request.form.get("tipo_relatorio") == "listagem":
+            cursor = con.cursor()
+            sql = """SELECT nome, ra, id_aula FROM aluno ORDER BY nome"""
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+            sql = """SELECT id_aula, nome FROM aula"""
+            cursor.execute(sql)
+            ids = dict(cursor.fetchall())
+
+            return render_template("visualize.html", rows=rows, ids=ids, type="listagem")
+    else:
+        return render_template('relatorio.html')
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -133,7 +189,7 @@ for code in default_exceptions:
 if __name__ == '__main__':
     app.run(host='127.0.0.1', debug=True)
 
-def gen(camera):
+def gen():
     while True:
-        frame = camera.run()
+        frame = camera.read()
         yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
