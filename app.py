@@ -16,7 +16,7 @@ aluno_data_file = 'salas\\BCC\\2A.json'
 classifier_file = 'src\\frontalFaceHaarcascade.xml'
 recognizer_file = 'src\\classificadores\\classificadorLBPH_V1.yml'
 
-# reconhecimento = ReconhecimentoFacial(aluno_data_file, classifier_file, recognizer_file)
+reconhecimento = ReconhecimentoFacial(aluno_data_file, classifier_file, recognizer_file)
 
 # Ensure responses aren't cached
 @app.after_request
@@ -48,11 +48,10 @@ def index():
 
 @app.route('/rec')
 def rec():
-    return
     return Response(gen(reconhecimento),mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route("/reconhecer", methods=["GET"])
-# @login_required
+@login_required
 def reconhecer():
     cursor = con.cursor()
     sql = """SELECT * FROM aluno WHERE id_aula = (SELECT id_aula FROM aula WHERE id_aula = %s) ORDER BY nome;"""
@@ -60,6 +59,18 @@ def reconhecer():
     data = cursor.fetchall()
 
     return render_template('reconhecer.html', data=data)
+
+@app.route("/registrar", methods=["GET"])
+@login_required
+def registrar():
+    cursor = con.cursor()
+    sql = """SELECT nome, id_aula FROM aula ORDER BY nome;"""
+    cursor.execute(sql, (1,))
+    data = cursor.fetchall()
+    print(sql)
+
+    return render_template('registrar.html', data=data)
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -80,14 +91,17 @@ def login():
             return apology("must provide password", 400)
 
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
+        cursor = con.cursor()
+        sql = """SELECT * FROM usuario WHERE login = %s;"""
+        cursor.execute(sql, (request.form.get("username"),))
+        rows = cursor.fetchall()
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+        if len(rows) != 1 or not check_password_hash(rows[0][2], request.form.get("password")):
             return apology("invalid username and/or password", 400)
 
         # Remember which user has logged in
-        session["user_id"] = rows[0]["id"]
+        session["user_id"] = rows[0][0]
         session['alert'] = 'Login sucessful!'
         # Redirect user to home page
         return redirect("/")

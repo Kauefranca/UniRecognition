@@ -4,8 +4,11 @@ VIDEO_SRC = 'http://192.168.68.102:4747/video'
 
 class Camera:
     def __init__(self): # Metodo construtor
-        self._camera = cv2.VideoCapture(VIDEO_SRC) # Atributo privado
-    
+        try:
+            self._camera = cv2.VideoCapture(VIDEO_SRC) # Atributo privado
+        except:
+            self._camera
+        
     def __del__(self): # Método destrutor
         self._camera.release()
         cv2.destroyAllWindows()
