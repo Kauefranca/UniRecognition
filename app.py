@@ -9,17 +9,21 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from utils.Helpers import apology, login_required
 
 from utils.Reconhecimento import ReconhecimentoFacial
-from utils.Camera import Camera
+from utils.CameraFeed import CameraFeed
+from utils.Captura import CapturaFaces
 
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-# aluno_data_file = 'salas\\BCC\\2A.json'
-# classifier_file = 'src\\frontalFaceHaarcascade.xml'
-# recognizer_file = 'src\\classificadores\\classificadorLBPH_V1.yml'
+classifier_file = 'src\\frontalFaceHaarcascade.xml'
+recognizer_file = 'src\\classificadores\\BCCA.yml'
+cascade_file = "src\\frontalFaceHaarcascade.xml"  # Arquivo do classificador Haar
 
-camera = Camera()
-# reconhecimento = ReconhecimentoFacial(aluno_data_file, classifier_file, recognizer_file)
+camera = CameraFeed()
+captura = CapturaFaces(cascade_file)
+
+reconhecimento = ReconhecimentoFacial(classifier_file, recognizer_file)
+  # Instância da classe CapturaFaces
 
 # Ensure responses aren't cached
 @app.after_request
@@ -35,7 +39,6 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Configure CS50 Library to use SQLite database
 con = psycopg2.connect(
 	host='localhost', 
 	database='postgres', 
@@ -44,6 +47,18 @@ con = psycopg2.connect(
 	password='unimar'
 )
 
+cursor = con.cursor()
+sql = """SELECT * FROM aluno WHERE id_aula = (SELECT id_aula FROM aula WHERE id_aula = %s);"""
+cursor.execute(sql, (1,))
+rows = cursor.fetchall()
+
+alunos = {}
+
+for row in rows:
+    alunos[row[2]] = row[1]
+
+reconhecimento.setAlunos(alunos)
+
 @app.route("/")
 @login_required
 def index():
@@ -51,7 +66,11 @@ def index():
 
 @app.route('/rec')
 def rec():
-    return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame ')
+
+@app.route('/cap')
+def cap():
+    return Response(gen_cap(), mimetype='multipart/x-mixed-replace; boundary=frame ')
 
 @app.route("/reconhecer", methods=["GET"])
 @login_required
@@ -94,6 +113,8 @@ def registrar():
         cursor.execute(sql, (request.form.get("nome"), request.form.get("ra"), request.form.get("id_aula")))
         con.commit()
 
+        captura.iniciarCaptura(request.form.get("ra"))
+
         # Redirect user to home page
         return redirect("/registrar")
 
@@ -103,9 +124,22 @@ def registrar():
         sql = """SELECT nome, id_aula FROM aula ORDER BY nome;"""
         cursor.execute(sql, (1,))
         data = cursor.fetchall()
-        print(sql)
 
         return render_template('registrar.html', data=data)
+
+@app.route("/treinar", methods=["GET", "POST"])
+@login_required
+def treinar():
+    if request.method == 'POST':
+        
+        pass
+    else:
+        cursor = con.cursor()
+        sql = """SELECT nome, id_aula FROM aula ORDER BY nome;"""
+        cursor.execute(sql)
+        data = cursor.fetchall()
+
+        return render_template('treinar.html', data=data)
 
 @app.route("/relatorio", methods=["GET", "POST"])
 @login_required
@@ -191,5 +225,11 @@ if __name__ == '__main__':
 
 def gen():
     while True:
-        frame = camera.read()
+        frame = reconhecimento.run()
+        yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
+def gen_cap():
+    while True:
+        frame = captura.capturar()
+        
         yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')

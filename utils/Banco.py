@@ -107,7 +107,7 @@ def selectAllUsers(id_aula):
 
 # selectImage(1959642)
      
-createUser("Eduardo Santos", 1959642, 1)
+# createUser("Kauê da Silva França", 1964011, 1)
 
 # for path in listdir('./fotos/1959642/'):
 # 	insertImage('./fotos/1959642/' + path, 1959642)
@@ -119,8 +119,12 @@ createUser("Eduardo Santos", 1959642, 1)
 
 # createAula('Fábrica de projeto ágeis', 1)
 # images = selectAllImages()
+alunos = {}
 
-alunos = selectAllUsers(1)
+rows = selectAllUsers(1)
+
+for row in rows:
+    alunos[row[2]] = row[1]
+
 print(alunos)
-
 con.close()
