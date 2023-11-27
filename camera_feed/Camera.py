@@ -24,6 +24,9 @@ class CameraFeed:
             if not con:
                 raise ConnectionError(f"A conexão com a câmera {VIDEO_SRC} foi perdida!")
 
-            ret, jpeg = cv2.imencode('.jpg', cap)
+            img = cv2.resize(cap, (640, 640))
+            # img = cv2.GaussianBlur(img, (15,15), 0)
+
+            ret, jpeg = cv2.imencode('.jpg', img)
 
             return jpeg.tobytes()

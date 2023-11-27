@@ -3,8 +3,8 @@ import threading
 import numpy as np
 import time
 
-VIDEO_SRC = 0
-# VIDEO_SRC = 'http://192.168.68.102:4747/video'
+# VIDEO_SRC = 0
+VIDEO_SRC = 'http://localhost:1234/camera_feed'
 # VIDEO_SRC = 'http://127.0.0.1:5000/rec'
 # 
 class Camera:
