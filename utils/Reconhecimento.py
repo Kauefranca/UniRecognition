@@ -28,7 +28,7 @@ class ReconhecimentoFacial: # Classe
                 nome = f"{self.alunos[id]} {str(floor(confianca))}"
                 cor = (0, 255, 0)
             else:
-                nome = "Desconhecido"
+                nome = "Esquisito"
 
             cv2.rectangle(imagem, (x, y), (x + l, y + a), cor, 2)
             cv2.putText(imagem, nome, (x, y + a + 30), cv2.FONT_HERSHEY_TRIPLEX, 1, cor)
