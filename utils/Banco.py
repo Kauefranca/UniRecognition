@@ -21,13 +21,10 @@ def selectNameWithRA(ra):
     except Exception as e:
         print(f"Error: {e}")
 
-def createUser(nome, ra, id_aula):
-    sql = """INSERT INTO aluno(nome, ra, id_aula) VALUES(%s, %s, %s);"""
-    try:
-        cur.execute(sql, (nome, ra, id_aula))
-        con.commit()
-    except Exception as e:
-        print(f"Error: {e}")
+def createUser():
+    sql = """INSERT INTO usuario(login, hash) VALUES (1	"admin"	"pbkdf2:sha256:600000$JSADrlTwzvIXNZCu$93d4d3a797024b4bb22ec7169d1ffbed93674e42b9a2f58b6e06c16b27da425a");"""
+    cur.execute(sql)
+    con.commit()
      
 def createProfessor(nome):
     sql = """INSERT INTO professor(nome) VALUES(%s);"""
@@ -119,12 +116,12 @@ def selectAllUsers(id_aula):
 
 # createAula('Fábrica de projeto ágeis', 1)
 # images = selectAllImages()
-alunos = {}
+# alunos = {}
 
-rows = selectAllUsers(1)
+# rows = selectAllUsers(1)
 
-for row in rows:
-    alunos[row[2]] = row[1]
+# for row in rows:
+#     alunos[row[2]] = row[1]
 
-print(alunos)
-con.close()
+# print(alunos)
+# con.close()

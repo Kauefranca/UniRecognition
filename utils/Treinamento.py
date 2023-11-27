@@ -1,27 +1,40 @@
+import psycopg2
 import cv2
 import os
 import numpy as np
+from PIL import Image
+from io import BytesIO
+
+con = psycopg2.connect(
+	host='localhost', 
+	database='postgres', 
+	port='5432',
+	user='postgres', 
+	password='unimar'
+)
 
 class TreinadorReconhecimentoFacial:
-    def __init__(self, classifier_filename):
+    def __init__(self):
         # Construtor da classe, recebe o diretório de dados e o nome do arquivo do classificador
-        self.classifier_filename = classifier_filename
         self.lbph = cv2.face.LBPHFaceRecognizer_create()  # Instância do classificador LBPH
 
-    def treinar(self):
-        ras = os.listdir(os.path.join('fotos'))
-        treinamento = {}
+    def treinar(self, classifier_filename, id_aula):
+        cur = con.cursor()
+        sql = """SELECT a.ra, i.imagem FROM aluno a LEFT JOIN imagem i ON i.id_aluno = a.id_aluno WHERE id_aula=%s"""
+        cur.execute(sql, (id_aula, ))
+        result = cur.fetchall()
 
-        for ra in ras:
-            if ra not in treinamento:
-                treinamento[ra] = {
+        treinamento = {}
+        for ra in result:
+            if ra[0] not in treinamento:
+                treinamento[ra[0]] = {
                     'ra': [],
                     'images': []
                 }
 
-            for item in os.listdir(os.path.join('fotos', ra)):
-                treinamento[ra]['images'].append(cv2.cvtColor(cv2.imread(os.path.join('fotos', ra, item)),cv2.COLOR_BGR2GRAY))
-                treinamento[ra]['ra'].append(int(ra))
+        for item in result:
+            treinamento[item[0]]['images'].append(np.array(Image.open(BytesIO(item[1]))))
+            treinamento[item[0]]['ra'].append(int(item[0]))
 
         lbph = cv2.face.LBPHFaceRecognizer_create()
 
@@ -30,7 +43,7 @@ class TreinadorReconhecimentoFacial:
         
         lbph.train(images, labels)
 
-        lbph.write(self.classifier_filename)
+        lbph.write(classifier_filename)
 
     def __del__(self): # Método destrutor
         print("Objeto TreinadorReconhecimentoFacial destruído")
@@ -38,5 +51,5 @@ class TreinadorReconhecimentoFacial:
 if __name__ == "__main__":
     classifier_filename = 'src\\classificadores\\BCCA.yml'  # Nome do arquivo do classificador
 
-    treinador = TreinadorReconhecimentoFacial(classifier_filename)  # Instância do Treinador
-    treinador.treinar()  # Chamada do método de treinamento
+    treinador = TreinadorReconhecimentoFacial()  # Instância do Treinador
+    treinador.treinar(classifier_filename, 1)  # Chamada do método de treinamento

@@ -1,14 +1,17 @@
-from flask import Flask, Response
+import shutil
 import psycopg2
+from flask import Flask, Response
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
+from os import mkdir, listdir, path
 
 from utils.Helpers import apology, login_required
 
 from utils.Reconhecimento import ReconhecimentoFacial
+from utils.Treinamento import TreinadorReconhecimentoFacial
 from utils.CameraFeed import CameraFeed
 from utils.Captura import CapturaFaces
 
@@ -20,6 +23,7 @@ recognizer_file = 'src\\classificadores\\BCCA.yml'
 cascade_file = "src\\frontalFaceHaarcascade.xml"  # Arquivo do classificador Haar
 
 camera = CameraFeed()
+treinador = TreinadorReconhecimentoFacial()
 captura = CapturaFaces(cascade_file)
 
 reconhecimento = ReconhecimentoFacial(classifier_file, recognizer_file)
@@ -103,8 +107,6 @@ def registrar():
         cursor.execute(sql, (request.form.get("ra"),))
         rows = cursor.fetchone()
 
-
-        # Check if username already exists
         if rows:
             return apology("Já existe alguém com esse RA cadastrado!", 400)
         
@@ -131,8 +133,8 @@ def registrar():
 @login_required
 def treinar():
     if request.method == 'POST':
-        
-        pass
+        treinador.treinar('src\\classificadores\\BCCA.yml', 1)
+        return redirect('/treinar')
     else:
         cursor = con.cursor()
         sql = """SELECT nome, id_aula FROM aula ORDER BY nome;"""
@@ -209,6 +211,25 @@ def logout():
 
     # Redirect user to login form
     return redirect("/")
+
+@app.route("/incluir_fotos", methods=["POST"])
+def incluir():
+    if request.method == "POST":
+        ra = request.form.get("ra")
+        if not ra:
+            return apology("Campo 'ra' obrigatório!", 400)
+            
+        for item in listdir(path.join('fotos', ra)):
+            with open(path.join('fotos', ra, item), 'rb') as file:
+                image_binary = file.read()
+
+            sql = """INSERT INTO imagem(imagem, id_aluno) VALUES (%s, (SELECT id_aluno FROM aluno WHERE ra = %s));"""
+            cursor.execute(sql, (image_binary, ra))
+            con.commit()
+        shutil.rmtree(path.join('fotos', ra), ignore_errors=True)
+        return redirect("/cadastrar")
+    else:
+        return apology('Method not allowed', 400)
 
 def errorhandler(e):
     """Handle error"""
