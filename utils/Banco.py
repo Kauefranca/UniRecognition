@@ -113,7 +113,6 @@ def selectAllUsers(id_aula):
 # print(name)
 
 createProfessor("Rafael Gutierres")
-
 createAula('Fábrica de projeto ágeis', 1)
 # images = selectAllImages()
 #alunos = {}
@@ -124,5 +123,5 @@ createAula('Fábrica de projeto ágeis', 1)
 #    alunos[row[2]] = row[1]
 
 #print(alunos)
-#createUser()
+createUser()
 con.close()

@@ -23,7 +23,6 @@ class ReconhecimentoFacial: # Classe
 
             cor = (0, 0, 255)
 
-
             if confianca < 79 and id in self.alunos:
                 nome = f"{self.alunos[id]} {str(floor(confianca))}"
                 cor = (0, 255, 0)

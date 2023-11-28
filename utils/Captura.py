@@ -1,5 +1,6 @@
+import requests
 import cv2
-from os import mkdir
+from os import mkdir, listdir, path
 from utils.Camera import Camera
 
 class CapturaFaces:
@@ -27,6 +28,7 @@ class CapturaFaces:
 
                 if self.amostra > self.numeroAmostras:
                     self.capturando = False  # Parar a captura após o número desejado de amostras
+                    self.incluirNoBanco(self.ra)
 
         _, jpeg = cv2.imencode('.jpg', imagem)
 
@@ -37,11 +39,10 @@ class CapturaFaces:
         self.ra = ra
         self.capturando = True
     
-    def incluirFotosNoBanco():
-        pass
-
-    def limparPastas():
-        pass
+    def incluirNoBanco(self, ra):
+        url = "http://localhost:5000/incluir_fotos"
+        data = {"ra": ra}
+        requests.post(url, data=data)
 
     def __del__(self): # Método destrutor
         del self.camera

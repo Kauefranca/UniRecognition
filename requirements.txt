@@ -4,3 +4,4 @@ flask
 Flask-Session
 opencv-python
 opencv-contrib-python
+requests

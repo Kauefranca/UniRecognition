@@ -25,7 +25,6 @@ sql = "CREATE TABLE IF NOT EXISTS usuario(id_usuario SERIAL NOT NULL UNIQUE PRIM
 cur.execute(sql)
 con.commit()
 
-# sql = "CREATE TABLE IF NOT EXISTS imagem(id_imagem SERIAL NOT NULL PRIMARY KEY,nome VARCHAR(60) NOT NULL,imagem BYTEA NOT NULL,id_aluno INT REFERENCES aluno(id_aluno));"
 sql = "CREATE TABLE IF NOT EXISTS imagem(imagem BYTEA NOT NULL, id_aluno INT REFERENCES aluno(id_aluno));"
 cur.execute(sql)
 con.commit()
