@@ -291,7 +291,6 @@ def handle_connect():
 @socketio.on('req_update')
 def update_table():
     result = obter_resultados_do_backend()
-    print(result)
     socketio.emit('update', result)
 
 def obter_resultados_do_backend():
@@ -301,14 +300,7 @@ def obter_resultados_do_backend():
     rows = cursor.fetchall()
     if (len(rows) <= 0): 
         return {}
-    agora = datetime.now()
-    passada = rows[0][4]
-    diferenca = agora - passada
-    limite = timedelta(minutes=20)
-    verde = False
-    if diferenca > limite:
-        verde = True
-
+    
     resultado = []
     # Transformar a lista de tuplas em uma lista de dicionários
     for row in rows:
@@ -317,7 +309,6 @@ def obter_resultados_do_backend():
             'ra': row[1],
             'entrada': row[2].strftime("%d/%m/%Y %H:%M:%S") if row[2] is not None else None,
             'saida': row[3].strftime("%d/%m/%Y %H:%M:%S") if row[3] is not None else None,
-            'verde': verde,
         }
         resultado.append(result_dict)
 
