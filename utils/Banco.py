@@ -21,7 +21,7 @@ def selectNameWithRA(ra):
     except Exception as e:
         print(f"Error: {e}")
 
-def createUser():
+def createUserAdmin():
     sql = """INSERT INTO usuario(login, hash) VALUES ('admin','pbkdf2:sha256:600000$JSADrlTwzvIXNZCu$93d4d3a797024b4bb22ec7169d1ffbed93674e42b9a2f58b6e06c16b27da425a');"""
     cur.execute(sql)
     con.commit()
@@ -102,26 +102,9 @@ def selectAllUsers(id_aula):
         print(f"Error: {e}")
 
 
-# selectImage(1959642)
-     
-# createUser("Kauê da Silva França", 1964011, 1)
-
-# for path in listdir('./fotos/1959642/'):
-# 	insertImage('./fotos/1959642/' + path, 1959642)
-     
-# name = selectNameWithRA('1959642')
-# print(name)
+createUserAdmin()
 
 createProfessor("Rafael Gutierres")
+
 createAula('Fábrica de projeto ágeis', 1)
-# images = selectAllImages()
-#alunos = {}
-
-#rows = selectAllUsers(1)
-
-#for row in rows:
-#    alunos[row[2]] = row[1]
-
-#print(alunos)
-createUser()
 con.close()

@@ -99,9 +99,9 @@ table {
 .centralizar{
     overflow: hidden;
     display: flex;
-    justify-content: left;
+    justify-content: center;
     align-items: center;
-    padding: 50px;
+    padding: 0px;
 }
 
 .btnde {
