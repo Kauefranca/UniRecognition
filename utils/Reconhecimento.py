@@ -1,12 +1,27 @@
-from math import floor
 import cv2
+import psycopg2
+from math import floor
+from datetime import datetime as dt
+
 from utils.Camera import Camera
+
+con = psycopg2.connect(
+	host='localhost', 
+	database='postgres', 
+	port='5432',
+	user='postgres', 
+	password='unimar'
+)
+
+entrada = []
+saida = []
 
 class ReconhecimentoFacial: # Classe
     def __init__(self, classifier_file, recognizer_file): # Método construtor
         self._classificador = cv2.CascadeClassifier(classifier_file) # Atributo protegido
         self.reconhecedor = cv2.face.LBPHFaceRecognizer_create()
         self.reconhecedor.read(recognizer_file)
+        self.status = None
         self.camera = Camera()
 
     # @staticmethod
@@ -23,8 +38,20 @@ class ReconhecimentoFacial: # Classe
 
             cor = (0, 0, 255)
 
-            if confianca < 79 and id in self.alunos:
-                nome = f"{self.alunos[id]} {str(floor(confianca))}"
+            if confianca < 79:
+                if self.status == 'entrada':
+                    cursor = con.cursor()
+                    sql = """UPDATE registro SET entrada=current_timestamp WHERE id_aluno=((SELECT id_aluno FROM aluno WHERE ra = %s)) AND entrada IS NULL;"""
+                    cursor.execute(sql, (id,))
+                    con.commit()
+                elif self.status == 'saida':
+                    if id not in saida:
+                        cursor = con.cursor()
+                        sql = """UPDATE registro SET saida=current_timestamp WHERE id_aluno=((SELECT id_aluno FROM aluno WHERE ra = %s)) AND saida IS NULL;"""
+                        cursor.execute(sql, (id,))
+                        con.commit()
+
+                nome = f"{id} {str(floor(confianca))}"
                 cor = (0, 255, 0)
             else:
                 nome = "Esquisito"
@@ -51,6 +78,9 @@ class ReconhecimentoFacial: # Classe
     
     def setAlunos(self, alunos):
         self.alunos = alunos
+
+    def setStatus(self, status):
+        self.status = status
 
     def __del__(self): # Método destrutor
         del self.camera

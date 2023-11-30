@@ -6,11 +6,14 @@
 
 {% block main %}
 
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+
 <link href="/static/reconhecer.css" rel="stylesheet">
     <!-- <img src="/rec"> -->
     <div>
         <img src="{{ url_for('rec') }}" alt="Video Stream">
-        <table>
+        <table id="lista_alunos">
             <tr>
                 <th colspan="2">
                     <div id="MyClockDisplay" class="clock" onload="showTime()">a</div>  
@@ -20,18 +23,71 @@
               <th>Nome</th>
               <th>Entrada</th>
             </tr>
-            {% for row in data %}
-            <tr>
-                <td>{{ row[1] }}</td>
-                <td></td>
-                <!-- Adicione mais colunas conforme necessário -->
-            </tr>
-            {% endfor %}
+            <tbody>
+                {% for row in data %}
+                <tr>
+                    <td>{{ row[1] }}</td>
+                    <td></td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
-
     </div>
-
+    <button type="button" class="btn btn-success" id="start">Iniciar aula</button>
+    <button disabled type="button" class="btn btn-danger" id="end">Encerrar aula</button>
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            showTime();
+            
+            var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+            socket.once('connection', async (msg) => {
+                while (msg == 'Ok') {
+                    socket.emit('req_update');
+                    await sleep(5000);
+                };
+            });
+
+            // Coloque a função 'updateTable' dentro do escopo do evento 'DOMContentLoaded'
+            function updateTable(data) {
+                var tableBody = document.getElementById('lista_alunos');
+                tableBody.innerHTML = '';
+
+                data.forEach(function(row) {
+                    var newRow = tableBody.insertRow(tableBody.rows.length);
+                    var cell1 = newRow.insertCell(0);
+                    var cell2 = newRow.insertCell(1);
+
+                    cell1.innerHTML = row.nome;
+                    cell2.innerHTML = row.ra;
+                });
+            }
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        });
+        
+        var start_button = document.querySelector('button#start');
+        start_button.addEventListener("click", start_aula);
+        var end_button = document.querySelector('button#end');
+        end_button.addEventListener("click", end_aula);
+
+        function start_aula() {
+            start_button.setAttribute('disabled', true);
+            end_button.removeAttribute('disabled')
+            fetch('http://' + document.domain + ':' + location.port + '/start_aula', {
+                method: 'POST'
+            });
+        };
+
+        function end_aula() {
+            end_button.setAttribute('disabled', true);
+            start_button.removeAttribute('disabled')
+
+            fetch('http://' + document.domain + ':' + location.port + '/end_aula', {
+                method: 'POST'
+            });
+        }
 
         function showTime(){
         var date = new Date();
@@ -60,7 +116,5 @@
         setTimeout(showTime, 1000);
     
     }
-
-    showTime();
     </script>
 {% endblock %}

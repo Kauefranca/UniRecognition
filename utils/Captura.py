@@ -8,7 +8,7 @@ class CapturaFaces:
         # Construtor da classe, recebe o arquivo do classificador e a fonte de vídeo
         self.classificador = cv2.CascadeClassifier(cascade_file)  # Instância do classificador Haar
         self.camera = Camera()  # Instância da câmera de vídeos
-        self.amostra = 1
+        self.amostra = 0
         self.numeroAmostras = 50
         self.capturando = False
 
@@ -27,8 +27,8 @@ class CapturaFaces:
                 cv2.waitKey(50)
 
                 if self.amostra > self.numeroAmostras:
-                    self.capturando = False  # Parar a captura após o número desejado de amostras
                     self.incluirNoBanco(self.ra)
+                    self.capturando = False  # Parar a captura após o número desejado de amostras
 
         _, jpeg = cv2.imencode('.jpg', imagem)
 
@@ -37,6 +37,7 @@ class CapturaFaces:
     def iniciarCaptura(self, ra):
         mkdir("Fotos/" + ra)
         self.ra = ra
+        self.amostra = 0
         self.capturando = True
     
     def incluirNoBanco(self, ra):

@@ -1,32 +1,42 @@
 import shutil
 import psycopg2
+import json
 from flask import Flask, Response
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
+from flask_socketio import SocketIO
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
 from os import mkdir, listdir, path
-
 from utils.Helpers import apology, login_required
+from datetime import datetime as dt
 
 from utils.Reconhecimento import ReconhecimentoFacial
 from utils.Treinamento import TreinadorReconhecimentoFacial
 from utils.CameraFeed import CameraFeed
 from utils.Captura import CapturaFaces
 
+ID_AULA = 1
+
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+socketio = SocketIO(app)
 
 classifier_file = 'src\\frontalFaceHaarcascade.xml'
 recognizer_file = 'src\\classificadores\\BCCA.yml'
 cascade_file = "src\\frontalFaceHaarcascade.xml"  # Arquivo do classificador Haar
+
+shutil.rmtree(path.join('Fotos'), ignore_errors=True)
+mkdir(path.join('Fotos'))
 
 camera = CameraFeed()
 treinador = TreinadorReconhecimentoFacial()
 captura = CapturaFaces(cascade_file)
 
 reconhecimento = ReconhecimentoFacial(classifier_file, recognizer_file)
+reconhecimento.setStatus(None)
+
   # Instância da classe CapturaFaces
 
 # Ensure responses aren't cached
@@ -53,7 +63,7 @@ con = psycopg2.connect(
 
 cursor = con.cursor()
 sql = """SELECT * FROM aluno WHERE id_aula = (SELECT id_aula FROM aula WHERE id_aula = %s);"""
-cursor.execute(sql, (1,))
+cursor.execute(sql, (ID_AULA,))
 rows = cursor.fetchall()
 
 alunos = {}
@@ -77,11 +87,11 @@ def cap():
     return Response(gen_cap(), mimetype='multipart/x-mixed-replace; boundary=frame ')
 
 @app.route("/reconhecer", methods=["GET"])
-@login_required
+# @login_required
 def reconhecer():
     cursor = con.cursor()
     sql = """SELECT * FROM aluno WHERE id_aula = (SELECT id_aula FROM aula WHERE id_aula = %s) ORDER BY nome;"""
-    cursor.execute(sql, (1,))
+    cursor.execute(sql, (ID_AULA,))
     data = cursor.fetchall()
 
     return render_template('reconhecer.html', data=data)
@@ -124,7 +134,7 @@ def registrar():
     else:
         cursor = con.cursor()
         sql = """SELECT nome, id_aula FROM aula ORDER BY nome;"""
-        cursor.execute(sql, (1,))
+        cursor.execute(sql, (ID_AULA,))
         data = cursor.fetchall()
 
         return render_template('registrar.html', data=data)
@@ -133,7 +143,7 @@ def registrar():
 @login_required
 def treinar():
     if request.method == 'POST':
-        treinador.treinar('src\\classificadores\\BCCA.yml', 1)
+        treinador.treinar('src\\classificadores\\BCCA.yml', ID_AULA)
         return redirect('/treinar')
     else:
         cursor = con.cursor()
@@ -144,7 +154,7 @@ def treinar():
         return render_template('treinar.html', data=data)
 
 @app.route("/relatorio", methods=["GET", "POST"])
-@login_required
+# @login_required
 def relatorio():
     if request.method == 'POST':
         if not request.form.get("tipo_relatorio"):
@@ -160,6 +170,14 @@ def relatorio():
             ids = dict(cursor.fetchall())
 
             return render_template("visualize.html", rows=rows, ids=ids, type="listagem")
+        
+        elif request.form.get("tipo_relatorio") == "presenca":
+            cursor = con.cursor()
+            sql = """SELECT id_aluno, entrada, saida FROM registro;"""
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+
+            return render_template("visualize.html", rows=rows, type="presenca")
     else:
         return render_template('relatorio.html')
 
@@ -226,10 +244,74 @@ def incluir():
             sql = """INSERT INTO imagem(imagem, id_aluno) VALUES (%s, (SELECT id_aluno FROM aluno WHERE ra = %s));"""
             cursor.execute(sql, (image_binary, ra))
             con.commit()
+
         shutil.rmtree(path.join('fotos', ra), ignore_errors=True)
         return redirect("/cadastrar")
     else:
         return apology('Method not allowed', 400)
+    
+@app.route("/start_aula", methods=["POST"])
+def start_aula():
+    if request.method == "POST":
+        reconhecimento.setStatus('entrada')
+        cursor = con.cursor()
+        sql = """SELECT * FROM aluno WHERE id_aula = %s ORDER BY nome;"""
+        cursor.execute(sql, (ID_AULA,))
+        rows = cursor.fetchall()
+        for row in rows:
+            cursor = con.cursor()
+            sql = """INSERT INTO registro(id_aluno, id_aula, start_date) VALUES (%s, %s, %s);"""
+            cursor.execute(sql, (row[0], ID_AULA, dt.now()))
+            con.commit()
+        return Response('Ok', status=200)
+    else:
+        return apology('Method not allowed', 400)
+
+@app.route("/end_aula", methods=["POST"])
+def end_aula():
+    if request.method == "POST":
+        reconhecimento.setStatus('saida')
+        cursor = con.cursor()
+        sql = """SELECT * FROM aluno WHERE id_aula = %s ORDER BY nome;"""
+        cursor.execute(sql, (ID_AULA,))
+        rows = cursor.fetchall()
+        for row in rows:
+            cursor = con.cursor()
+            sql = """UPDATE registro SET end_date=current_timestamp WHERE id_aluno=(SELECT id_aluno FROM aluno WHERE ra = %s) AND saida IS NULL;"""
+            cursor.execute(sql, (row[2],))
+            con.commit()
+        return Response('Ok', status=200)
+    else:
+        return apology('Method not allowed', 400)
+
+@socketio.on('connect')
+def handle_connect():
+    socketio.emit('connection', 'Ok')
+
+@socketio.on('req_update')
+def update_table():
+    socketio.emit('update', obter_resultados_do_backend())
+
+def obter_resultados_do_backend():
+    cursor = con.cursor()
+    sql = """SELECT * FROM aluno;"""
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+
+    resultado = []
+    # Transformar a lista de tuplas em uma lista de dicionários
+    for row in rows:
+        result_dict = {
+            'id': row[0],
+            'nome': row[1],
+            'ra': row[2],
+            'id_aula': row[3]
+        }
+        resultado.append(result_dict)
+
+    # Serializar a lista de dicionários em formato JSON
+    json_output = json.dumps(resultado)
+    return resultado
 
 def errorhandler(e):
     """Handle error"""
@@ -242,7 +324,8 @@ for code in default_exceptions:
     app.errorhandler(code)(errorhandler)
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', debug=True)
+    # app.run(host='127.0.0.1', debug=True)
+    socketio.run(app, debug=True)
 
 def gen():
     while True:

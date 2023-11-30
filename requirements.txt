@@ -5,3 +5,4 @@ Flask-Session
 opencv-python
 opencv-contrib-python
 requests
+flask-socketio

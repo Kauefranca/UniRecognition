@@ -24,5 +24,21 @@
         {% endfor %}
       </table>
     {% endif %}
+    {% if type == 'presenca' %}
+    <table>
+      <tr>
+        <th>Nome</th>
+        <th>Entrada</th>
+        <th>Saída</th>
+      </tr>
+      {% for row in rows %}
+        <tr>
+          <td>{{ row[0] }}</td>
+          <td>{{ row[1] }}</td>
+          <td>{{ row[2] }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+    {% endif %}
     </div>
 {% endblock %}

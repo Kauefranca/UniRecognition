@@ -29,7 +29,7 @@ sql = "CREATE TABLE IF NOT EXISTS imagem(imagem BYTEA NOT NULL, id_aluno INT REF
 cur.execute(sql)
 con.commit()
 
-sql = "CREATE TABLE IF NOT EXISTS registro(id_registro INT NOT NULL UNIQUE PRIMARY KEY, id_aluno INT NOT NULL REFERENCES aluno(id_aluno),id_aula INT NOT NULL REFERENCES aula(id_aula),	dthr TIMESTAMP NOT NULL);"
+sql = "CREATE TABLE IF NOT EXISTS registro(id_registro SERIAL NOT NULL UNIQUE PRIMARY KEY, id_aluno INT NOT NULL REFERENCES aluno(id_aluno),id_aula INT NOT NULL REFERENCES aula(id_aula),entrada TIMESTAMP, saida TIMESTAMP, start_date TIMESTAMP, end_date TIMESTAMP);"
 cur.execute(sql)
 con.commit()
 
