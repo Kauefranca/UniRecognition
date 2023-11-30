@@ -10,7 +10,7 @@ from werkzeug.exceptions import default_exceptions, HTTPException, InternalServe
 from werkzeug.security import check_password_hash, generate_password_hash
 from os import mkdir, listdir, path
 from utils.Helpers import apology, login_required
-from datetime import datetime as dt
+from datetime import datetime, timedelta
 
 from utils.Reconhecimento import ReconhecimentoFacial
 from utils.Treinamento import TreinadorReconhecimentoFacial
@@ -87,7 +87,7 @@ def cap():
     return Response(gen_cap(), mimetype='multipart/x-mixed-replace; boundary=frame ')
 
 @app.route("/reconhecer", methods=["GET"])
-# @login_required
+@login_required
 def reconhecer():
     cursor = con.cursor()
     sql = """SELECT * FROM aluno WHERE id_aula = (SELECT id_aula FROM aula WHERE id_aula = %s) ORDER BY nome;"""
@@ -154,7 +154,7 @@ def treinar():
         return render_template('treinar.html', data=data)
 
 @app.route("/relatorio", methods=["GET", "POST"])
-# @login_required
+@login_required
 def relatorio():
     if request.method == 'POST':
         if not request.form.get("tipo_relatorio"):
@@ -173,7 +173,7 @@ def relatorio():
         
         elif request.form.get("tipo_relatorio") == "presenca":
             cursor = con.cursor()
-            sql = """SELECT id_aluno, entrada, saida FROM registro;"""
+            sql = """SELECT a.nome, a.ra, r.entrada, r.saida FROM aluno a LEFT JOIN registro r ON r.id_aluno = a.id_aluno;"""
             cursor.execute(sql)
             rows = cursor.fetchall()
 
@@ -261,7 +261,7 @@ def start_aula():
         for row in rows:
             cursor = con.cursor()
             sql = """INSERT INTO registro(id_aluno, id_aula, start_date) VALUES (%s, %s, %s);"""
-            cursor.execute(sql, (row[0], ID_AULA, dt.now()))
+            cursor.execute(sql, (row[0], ID_AULA, datetime.now()))
             con.commit()
         return Response('Ok', status=200)
     else:
@@ -290,28 +290,40 @@ def handle_connect():
 
 @socketio.on('req_update')
 def update_table():
-    socketio.emit('update', obter_resultados_do_backend())
+    result = obter_resultados_do_backend()
+    print(result)
+    socketio.emit('update', result)
 
 def obter_resultados_do_backend():
     cursor = con.cursor()
-    sql = """SELECT * FROM aluno;"""
+    sql = """SELECT a.nome, a.ra, r.entrada, r.saida, r.start_date, r.end_date FROM aluno a LEFT JOIN registro r ON r.id_aluno = a.id_aluno WHERE r.end_date IS NULL"""
     cursor.execute(sql)
     rows = cursor.fetchall()
+    if (len(rows) <= 0): 
+        return {}
+    agora = datetime.now()
+    passada = rows[0][4]
+    diferenca = agora - passada
+    limite = timedelta(minutes=20)
+    verde = False
+    if diferenca > limite:
+        verde = True
 
     resultado = []
     # Transformar a lista de tuplas em uma lista de dicionários
     for row in rows:
         result_dict = {
-            'id': row[0],
-            'nome': row[1],
-            'ra': row[2],
-            'id_aula': row[3]
+            'nome': row[0],
+            'ra': row[1],
+            'entrada': row[2].strftime("%d/%m/%Y %H:%M:%S") if row[2] is not None else None,
+            'saida': row[3].strftime("%d/%m/%Y %H:%M:%S") if row[3] is not None else None,
+            'verde': verde,
         }
         resultado.append(result_dict)
 
     # Serializar a lista de dicionários em formato JSON
     json_output = json.dumps(resultado)
-    return resultado
+    return json_output
 
 def errorhandler(e):
     """Handle error"""

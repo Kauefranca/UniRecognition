@@ -28,6 +28,7 @@
     <table>
       <tr>
         <th>Nome</th>
+        <th>RA</th>
         <th>Entrada</th>
         <th>Saída</th>
       </tr>
@@ -35,7 +36,8 @@
         <tr>
           <td>{{ row[0] }}</td>
           <td>{{ row[1] }}</td>
-          <td>{{ row[2] }}</td>
+          <td>{{ row[2].strftime("%d/%m/%Y %H:%M:%S") }}</td>
+          <td>{{ row[3].strftime("%d/%m/%Y %H:%M:%S") }}</td>
         </tr>
       {% endfor %}
     </table>

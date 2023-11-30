@@ -8,6 +8,14 @@ div {
     display: flex;
 }
 
+.data-verde {
+    color: green;
+}
+
+.data-vermelha {
+    color: red;
+}
+
 #MyClockDisplay {
     margin: auto;
     text-align: center;
