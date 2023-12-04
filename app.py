@@ -17,6 +17,7 @@ from utils.Reconhecimento import ReconhecimentoFacial
 from utils.Treinamento import TreinadorReconhecimentoFacial
 from utils.CameraFeed import CameraFeed
 from utils.Captura import CapturaFaces
+from utils.Conexão import DatabaseConnection
 
 # Remover arquivos temporários antigos.
 shutil.rmtree(path.join('Fotos'), ignore_errors=True)
@@ -53,18 +54,10 @@ app.config["SESSION_TYPE"] = "filesystem"
 
 Session(app)
 
-con = psycopg2.connect(
-	host='localhost', 
-	database='postgres', 
-	port='5432',
-	user='postgres', 
-	password='unimar'
-)
+db = DatabaseConnection(host='localhost', database='postgres', user='postgres', password='unimar')
+db.connect()
 
-cursor = con.cursor()
-sql = """SELECT * FROM aluno WHERE id_aula = (SELECT id_aula FROM aula WHERE id_aula = %s);"""
-cursor.execute(sql, (ID_AULA,))
-rows = cursor.fetchall()
+rows = db.execute_query("""SELECT * FROM aluno WHERE id_aula = (SELECT id_aula FROM aula WHERE id_aula = %s);""", ID_AULA)
 
 alunos = {}
 
@@ -89,10 +82,7 @@ def cap():
 @app.route("/reconhecer", methods=["GET"])
 @login_required
 def reconhecer():
-    cursor = con.cursor()
-    sql = """SELECT * FROM aluno WHERE id_aula = (SELECT id_aula FROM aula WHERE id_aula = %s) ORDER BY nome;"""
-    cursor.execute(sql, (ID_AULA,))
-    data = cursor.fetchall()
+    data = db.execute_query("""SELECT * FROM aluno WHERE id_aula = (SELECT id_aula FROM aula WHERE id_aula = %s) ORDER BY nome;""", ID_AULA)
 
     return render_template('reconhecer.html', data=data)
 
@@ -109,28 +99,18 @@ def registrar():
         elif not request.form.get("id_aula"):
             return erro("Campo 'id_aula' obrigatório!", 400)
         
-        cursor = con.cursor()
-        sql = """SELECT * FROM aluno WHERE ra = %s"""
-        cursor.execute(sql, (request.form.get("ra"),))
-        rows = cursor.fetchone()
+        rows = db.execute_query("""SELECT * FROM aluno WHERE ra = %s""", (request.form.get("ra"),))
 
         if rows:
             return erro("Já existe alguém com esse RA cadastrado!", 400)
         
-        cursor = con.cursor()
-        sql = """INSERT INTO aluno(nome, ra, id_aula) VALUES (%s, %s, %s)"""
-        cursor.execute(sql, (request.form.get("nome"), request.form.get("ra"), request.form.get("id_aula")))
-        con.commit()
+        db.execute_update("""INSERT INTO aluno(nome, ra, id_aula) VALUES (%s, %s, %s)""", (request.form.get("nome"), request.form.get("ra"), request.form.get("id_aula")))
 
         captura.iniciarCaptura(request.form.get("ra"))
 
         return redirect("/registrar")
     else:
-        cursor = con.cursor()
-        sql = """SELECT nome, id_aula FROM aula ORDER BY nome;"""
-        cursor.execute(sql, (ID_AULA,))
-        data = cursor.fetchall()
-
+        data = db.execute_query("""SELECT nome, id_aula FROM aula ORDER BY nome;""", ID_AULA)
         return render_template('registrar.html', data=data)
 
 @app.route("/treinar", methods=["GET", "POST"])
@@ -140,10 +120,7 @@ def treinar():
         treinador.treinar('src\\classificadores\\BCCA.yml', ID_AULA)
         return redirect('/treinar')
     else:
-        cursor = con.cursor()
-        sql = """SELECT nome, id_aula FROM aula ORDER BY nome;"""
-        cursor.execute(sql)
-        data = cursor.fetchall()
+        data = db.execute_query("""SELECT nome, id_aula FROM aula WHERE id_aula = %s ORDER BY nome;""", ID_AULA)
 
         return render_template('treinar.html', data=data)
 
@@ -155,21 +132,13 @@ def relatorio():
             return erro("Campo 'tipo_relatorio' obrigatório!", 400)
         
         if request.form.get("tipo_relatorio") == "listagem":
-            cursor = con.cursor()
-            sql = """SELECT nome, ra, id_aula FROM aluno ORDER BY nome"""
-            cursor.execute(sql)
-            rows = cursor.fetchall()
-            sql = """SELECT id_aula, nome FROM aula"""
-            cursor.execute(sql)
-            ids = dict(cursor.fetchall())
+            rows = db.execute_query("""SELECT nome, ra, id_aula FROM aluno ORDER BY nome""")
+            ids = dict(db.execute_query("""SELECT id_aula, nome FROM aula"""))
 
             return render_template("visualize.html", rows=rows, ids=ids, type="listagem")
         
         elif request.form.get("tipo_relatorio") == "presenca":
-            cursor = con.cursor()
-            sql = """SELECT a.nome, a.ra, r.entrada, r.saida FROM aluno a LEFT JOIN registro r ON r.id_aluno = a.id_aluno;"""
-            cursor.execute(sql)
-            rows = cursor.fetchall()
+            rows = db.execute_query("""SELECT a.nome, a.ra, r.entrada, r.saida FROM aluno a LEFT JOIN registro r ON r.id_aluno = a.id_aluno;""")
 
             return render_template("visualize.html", rows=rows, type="presenca")
     else:
@@ -187,10 +156,7 @@ def login():
         elif not request.form.get("password"):
             return erro("must provide password", 400)
 
-        cursor = con.cursor()
-        sql = """SELECT * FROM usuario WHERE login = %s;"""
-        cursor.execute(sql, (request.form.get("username"),))
-        rows = cursor.fetchall()
+        rows = db.execute_query("""SELECT * FROM usuario WHERE login = %s;""", (request.form.get("username"),))
 
         if len(rows) != 1 or not check_password_hash(rows[0][2], request.form.get("password")):
             return erro("invalid username and/or password", 400)
@@ -218,9 +184,7 @@ def incluir():
             with open(path.join('fotos', ra, item), 'rb') as file:
                 image_binary = file.read()
 
-            sql = """INSERT INTO imagem(imagem, id_aluno) VALUES (%s, (SELECT id_aluno FROM aluno WHERE ra = %s));"""
-            cursor.execute(sql, (image_binary, ra))
-            con.commit()
+            db.execute_update("""INSERT INTO imagem(imagem, id_aluno) VALUES (%s, (SELECT id_aluno FROM aluno WHERE ra = %s));""", (image_binary, ra))
 
         shutil.rmtree(path.join('fotos', ra), ignore_errors=True)
         return redirect("/cadastrar")
@@ -231,16 +195,10 @@ def incluir():
 def start_aula():
     if request.method == "POST":
         reconhecimento.setStatus('entrada')
-        cursor = con.cursor()
-        sql = """SELECT * FROM aluno WHERE id_aula = %s ORDER BY nome;"""
-        cursor.execute(sql, (ID_AULA,))
-        rows = cursor.fetchall()
+        rows = db.execute_query("""SELECT * FROM aluno WHERE id_aula = %s ORDER BY nome;""", (ID_AULA,))
 
         for row in rows:
-            cursor = con.cursor()
-            sql = """INSERT INTO registro(id_aluno, id_aula, start_date) VALUES (%s, %s, %s);"""
-            cursor.execute(sql, (row[0], ID_AULA, datetime.now()))
-            con.commit()
+            db.execute_update("""INSERT INTO registro(id_aluno, id_aula, start_date) VALUES (%s, %s, %s);""", (row[0], ID_AULA, datetime.now()))
 
         return Response('Ok', status=200)
     else:
@@ -250,16 +208,10 @@ def start_aula():
 def end_aula():
     if request.method == "POST":
         reconhecimento.setStatus('saida')
-        cursor = con.cursor()
-        sql = """SELECT * FROM aluno WHERE id_aula = %s ORDER BY nome;"""
-        cursor.execute(sql, (ID_AULA,))
-        rows = cursor.fetchall()
+        rows = db.execute_query("""SELECT * FROM aluno WHERE id_aula = %s ORDER BY nome;""", (ID_AULA,))
 
         for row in rows:
-            cursor = con.cursor()
-            sql = """UPDATE registro SET end_date=current_timestamp WHERE id_aluno=(SELECT id_aluno FROM aluno WHERE ra = %s) AND saida IS NULL;"""
-            cursor.execute(sql, (row[2],))
-            con.commit()
+            db.execute_update("""UPDATE registro SET end_date=current_timestamp WHERE id_aluno=(SELECT id_aluno FROM aluno WHERE ra = %s) AND saida IS NULL;""", (row[2],))
 
         return Response('Ok', status=200)
     else:
@@ -275,10 +227,8 @@ def update_table():
     socketio.emit('update', result)
 
 def obter_resultados_do_backend():
-    cursor = con.cursor()
-    sql = """SELECT a.nome, a.ra, r.entrada, r.saida, r.start_date, r.end_date FROM aluno a LEFT JOIN registro r ON r.id_aluno = a.id_aluno WHERE r.end_date IS NULL"""
-    cursor.execute(sql)
-    rows = cursor.fetchall()
+    rows = db.execute_query("""SELECT a.nome, a.ra, r.entrada, r.saida, r.start_date, r.end_date FROM aluno a LEFT JOIN registro r ON r.id_aluno = a.id_aluno WHERE r.end_date IS NULL""")
+
     if (len(rows) <= 0): 
         return {}
     
