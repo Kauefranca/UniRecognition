@@ -1,7 +1,10 @@
+# ARQUIVO PARA CRIAÇÃO DE ALGUMAS
+# CHAVES DE TESTE PARA O BANCO
+# ETTORE IGNORE
+
 import psycopg2
 from PIL import Image
 from io import BytesIO
-from os import listdir
 
 con = psycopg2.connect(
 	host='localhost', 
@@ -21,6 +24,7 @@ def selectNameWithRA(ra):
     except Exception as e:
         print(f"Error: {e}")
 
+# admin:admin
 def createUserAdmin():
     sql = """INSERT INTO usuario(login, hash) VALUES ('admin','pbkdf2:sha256:600000$JSADrlTwzvIXNZCu$93d4d3a797024b4bb22ec7169d1ffbed93674e42b9a2f58b6e06c16b27da425a');"""
     cur.execute(sql)

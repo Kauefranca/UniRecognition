@@ -1,16 +1,14 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Reconhecimento
+    Reconhecer
 {% endblock %}
 
 {% block main %}
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
-
 <link href="/static/reconhecer.css" rel="stylesheet">
-    <!-- <img src="/rec"> -->
     <div>
         <img src="{{ url_for('rec') }}" alt="Video Stream">
         <table>
@@ -66,10 +64,6 @@
                     cell2.innerHTML = row.entrada;
                     cell3.innerHTML = row.saida;
                 });
-                // for (let item of msg) {
-                //     console.log(item);
-                // }
-                // console.log(msg)
             });
         });
         
@@ -101,9 +95,9 @@
         
         function showTime(){
         var date = new Date();
-        var h = date.getHours(); // 0 - 23
-        var m = date.getMinutes(); // 0 - 59
-        var s = date.getSeconds(); // 0 - 59
+        var h = date.getHours();
+        var m = date.getMinutes();
+        var s = date.getSeconds();
         var session = "AM";
         
         if(h == 0){
@@ -127,4 +121,5 @@
     
     }
     </script>
+
 {% endblock %}

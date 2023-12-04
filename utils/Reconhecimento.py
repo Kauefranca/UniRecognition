@@ -1,7 +1,6 @@
 import cv2
 import psycopg2
 from math import floor
-from datetime import datetime as dt
 
 from utils.Camera import Camera
 

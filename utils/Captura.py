@@ -1,6 +1,6 @@
 import requests
 import cv2
-from os import mkdir, listdir, path
+from os import mkdir
 from utils.Camera import Camera
 
 class CapturaFaces:

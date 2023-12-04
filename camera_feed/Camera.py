@@ -1,8 +1,11 @@
 import cv2
 import threading
+import os
+from dotenv import load_dotenv
 
-VIDEO_SRC = 0
-# VIDEO_SRC = 'http://192.168.137.207:81/stream'
+load_dotenv()
+
+VIDEO_SRC = os.getenv('VIDEO_SRC')
 
 class CameraFeed:
     def __init__(self): # Metodo construtor
@@ -25,7 +28,6 @@ class CameraFeed:
                 raise ConnectionError(f"A conexão com a câmera {VIDEO_SRC} foi perdida!")
 
             img = cv2.resize(cap, (640, 640))
-            # img = cv2.GaussianBlur(img, (15,15), 0)
 
             ret, jpeg = cv2.imencode('.jpg', img)
 

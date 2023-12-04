@@ -1,8 +1,12 @@
 import cv2
 import threading
 
-VIDEO_SRC = 0
-# VIDEO_SRC = 'http://192.168.137.207:81/stream'
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+VIDEO_SRC = os.getenv('CAMERA_FEED')
 
 class CameraFeed:
     def __init__(self): # Metodo construtor

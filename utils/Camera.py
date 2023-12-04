@@ -1,15 +1,14 @@
 import cv2
 import threading
-import numpy as np
-import time
+import os
+from dotenv import load_dotenv
 
-VIDEO_SRC = 0
-VIDEO_SRC = 'http://localhost:1234/camera_feed'
-# VIDEO_SRC = 'http://127.0.0.1:5000/rec'
-# 
+load_dotenv()
+
+VIDEO_SRC = os.getenv('VIDEO_SRC')
+
 class Camera:
     def __init__(self): # Metodo construtor
-        # time.sleep(5)
         try:
             self._camera = cv2.VideoCapture(VIDEO_SRC) # Atributo privado
         except:
@@ -25,14 +24,8 @@ class Camera:
     def read(self):
         with self._lock:
             con, cap = self._camera.read()
-            # print(cap)
 
             if not con:
                 raise ConnectionError(f"A conexão com a câmera {VIDEO_SRC} foi perdida!")
-            
-            # nparr = np.frombuffer(cap, np.uint8)
-            # cap = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-            # print(cap)
 
             return cap
