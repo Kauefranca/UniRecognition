@@ -71,6 +71,29 @@
 - [x] Codificou propriedades.
     ReconhecimentoFacial em Reconhecimento: verAlunos() -> Retorna lista de alunos carregadas do json.
 
+- [x] Identificou e codificou classes de dados.
+    No banco de dados com o cadastro de Aluno
+
+- [x] Usou polimorfismo.
+    Utilizamos a classe Câmera em 3 diferentes arquivos, Captura.py, Reconhecimento.py e Treinamento.py
+    Em cada arquivo ela tem uma ação diferente, a mesma utiliza a câmera de 3 formas diferentes
+
+- [x] Codificou padrões de projeto
+    No código da câmera (Camera class), há um uso de um padrão singleton, onde a instância da câmera é criada apenas uma vez durante a execução do programa. Isso é alcançado com a ajuda do método init e del, garantindo que a instância da câmera seja única;
+    No código do Reconhecimento Facial (ReconhecimentoFacial class), há um método run que é um ponto de entrada para iniciar a execução do reconhecimento facial. Isso pode ser considerado um padrão de método de fábrica, onde o método run cria e coordena os objetos necessários para realizar o reconhecimento facial;
+    O método treinar na classe TreinadorReconhecimentoFacial usa um algoritmo específico para treinar o reconhecedor facial. Isso pode ser visto como um padrão de estratégia, onde diferentes algoritmos (classificadores e reconhecedores) podem ser usados intercambiavelmente.
+
+- [x] Usou conceitos de SOLID
+    A classe Camera e a classe CameraFeed estão alinhadas com o SRP, cada uma lidando com a funcionalidade;
+    As classes ReconhecimentoFacial e CapturaFaces podem ser estendidas para adicionar novos comportamentos sem modificar o código existente
+    A dependência da classe Camera dentro da classe ReconhecimentoFacial poderia ser injetada por meio de injeção de dependência ou passagem de instância. Isso permitiria uma maior flexibilidade na escolha da implementação da câmera.
+
+- [x] Usou conceitos de código limpo.
+    Nomes Descritivos, Funções Curtas, Comentários, Organização do Código, Manipulação de Exceções
+
+- [x] Ocultou informações usando atributos e ou métodos protected/private 1 2
+    Ocultamos as informações sobre o URL da câmera no arquivo .env
+
 - [x] Identificou e codificou classes de comportamento
     Utilizamos herança na classe Camera, ela herda as funcionalidades do metodo read, da biblioteca cv2.
 
