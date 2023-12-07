@@ -36,7 +36,7 @@ class DatabaseConnection:
         try:
             with self.connection.cursor() as cursor:
                 if parameters:
-                    cursor.execute(query, parameters)
+                    cursor.execute(query, (parameters,))
                 else:
                     cursor.execute(query)
                 
